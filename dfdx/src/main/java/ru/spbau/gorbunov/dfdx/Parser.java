@@ -34,9 +34,9 @@ public class Parser {
                     BinaryOperator op = BinaryOperator.fromString(token.getTokenStr());
                     while (!operationStack.empty()) {
                         Token top = operationStack.peek();
-                        boolean canBeEvaluated = top.getType().equals(TokenTag.FUN); // function must be evaluated
+                        boolean canBeEvaluated = (top.getType() == TokenTag.FUN); // function must be evaluated
                         // binary operation can be evaluated if it has higher priority
-                        if ((!canBeEvaluated) && top.getType().equals(TokenTag.BINARY_OP)) {
+                        if ((!canBeEvaluated) && top.getType() == TokenTag.BINARY_OP) {
                             BinaryOperator topOp = BinaryOperator.fromString(top.getTokenStr());
                             canBeEvaluated = op.isRightAssoc() ? (topOp.getPriority() > op.getPriority())
                                     : (topOp.getPriority() >= op.getPriority());
@@ -63,22 +63,26 @@ public class Parser {
     }
 
     private static void evalOperation(Stack<MathExpressionTree> evalStack, Stack<Token> operationStack) {
-        if (operationStack.peek().getType().equals(TokenTag.BINARY_OP)) {
-            if (evalStack.size() < 2) {
-                throw new BadInputExpressionException("Bad operator usage!");
-            }
-            MathExpressionTree rp = evalStack.pop();
-            MathExpressionTree lp = evalStack.pop();
-            evalStack.push(new MathExpressionTree(operationStack.pop(), lp, rp));
-        } else if (operationStack.peek().getType().equals(TokenTag.FUN)) {
-            if (evalStack.size() < 1) {
-                throw new BadInputExpressionException("Bad function usage!");
-            }
-            evalStack.push(new MathExpressionTree(operationStack.pop(), evalStack.pop()));
-        } else if (operationStack.peek().getType().equals(TokenTag.LEFT_PAREN)) {
-            throw new BadInputExpressionException("Bad parenthesis!");
-        } else {
-            throw new BadInputExpressionException("Bad input =(");
+        TokenTag type = operationStack.peek().getType();
+        switch (type) {
+            case BINARY_OP:
+                if (evalStack.size() < 2) {
+                    throw new BadInputExpressionException("Bad operator usage!");
+                }
+                MathExpressionTree rp = evalStack.pop();
+                MathExpressionTree lp = evalStack.pop();
+                evalStack.push(new MathExpressionTree(operationStack.pop(), lp, rp));
+                break;
+            case LEFT_PAREN:
+                throw new BadInputExpressionException("Bad parenthesis!");
+            case FUN:
+                if (evalStack.size() < 1) {
+                    throw new BadInputExpressionException("Bad function usage!");
+                }
+                evalStack.push(new MathExpressionTree(operationStack.pop(), evalStack.pop()));
+                break;
+            default:
+                throw new BadInputExpressionException("Bad input =(");
         }
     }
 }

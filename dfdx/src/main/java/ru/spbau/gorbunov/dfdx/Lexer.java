@@ -26,14 +26,14 @@ public class Lexer {
             State prevState = curState;
             curState = go(prevState, c);
 
-            if (curState.equals(State.UNKNOWN)) {
+            if (curState == State.UNKNOWN) {
                 throw new BadInputExpressionException("Unknown characters and bad input!");
             }
-            if (curState.equals(State.ERROR)) {
+            if (curState == State.ERROR) {
                 throw new BadInputExpressionException("Bad input expression!");
             }
 
-            if (prevState.equals(State.PAREN) || (!prevState.equals(curState) && !curToken.isEmpty())) {
+            if ((prevState == State.PAREN || prevState != curState) && !curToken.isEmpty()) {
                 switch (prevState) {
                     case OPERATOR:
                         tokens.add(new Token(TokenTag.BINARY_OP, curToken));
@@ -90,11 +90,11 @@ public class Lexer {
         if (c == '(' || c == ')') {
             return State.PAREN;
         }
-        if (c == '.' && curState.equals(State.NUMERIC)) {
+        if (c == '.' && curState == State.NUMERIC) {
             return State.NUMERIC;
         }
         if (Character.isDigit(c)) {
-            if (curState.equals(State.ALPHABETIC)) {
+            if (curState == State.ALPHABETIC) {
                 return State.ALPHABETIC;
             } else {
                 return State.NUMERIC;
@@ -103,7 +103,7 @@ public class Lexer {
         // check if binary operator
         for (BinaryOperator bo : BinaryOperator.values()) {
             if (c == bo.getSymbol()) {
-                if (curState.equals(State.OPERATOR)) {
+                if (curState == State.OPERATOR) {
                     return State.ERROR;
                 }
                 return State.OPERATOR;
